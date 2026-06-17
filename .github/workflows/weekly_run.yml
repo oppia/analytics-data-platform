@@ -46,8 +46,10 @@ jobs:
       # Exchange GitHub secret tokens for active, authenticated Google Cloud sessions
       - name: Authenticate to GCP Natively
         run: |
-          # Write the secret JSON token to a temporary file on the runner
-          echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" > ${HOME}/gcp_key.json
+          # Write the secret JSON token safely as a raw literal string
+          cat << 'EOF' > ${HOME}/gcp_key.json
+          ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+          EOF
 
           # Activate the service account using the pre-installed gcloud CLI
           gcloud auth activate-service-account --key-file=${HOME}/gcp_key.json
