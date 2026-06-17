@@ -1,0 +1,51 @@
+name: Pull Request Data Validation
+
+on:
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  validate_sql:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          pip install dbt-bigquery sqlfluff-templater-dbt
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+        # Generate a local connection profile using service-account credentials
+      - name: Create dynamic profiles.yml for dbt
+        run: |
+          cat << EOF > profiles.yml
+          oppia_analytics:
+            target: dev
+            outputs:
+              dev:
+                type: bigquery
+                method: service-account
+                keyfile: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }} # Injected automatically by the auth step
+                project: oppia-analytics-test
+                dataset: dev_github_actions
+                threads: 4
+                timeout_seconds: 300
+                location: US
+          EOF
+
+      - name: Test Integrity Constraints and Schema Setup
+        run: dbt test --profiles-dir .
+
+      - name: Test Compilation and Lineage
+        # dbt compile checks syntax, relationships, and lineage macro links without running jobs on BigQuery
+        run: dbt compile --profiles-dir .

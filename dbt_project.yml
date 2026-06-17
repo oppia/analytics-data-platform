@@ -1,0 +1,41 @@
+name: 'oppia_analytics'
+version: '1.0.0'
+config-version: 2
+profile: 'oppia_analytics'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# This section dynamically routes your tables based on the target (dev vs prod)
+models:
+  oppia_analytics:
+    +materialized: table
+
+    # Staging Layer configuration
+    stg:
+      +schema: stg
+      web:
+        # Dynamically selects the test web server vs the prod web server project
+        +database: "{{ 'oppiaserver' if target.name == 'prod' else 'oppiatestserver' }}"
+      android:
+        # Dynamically selects the test android server vs the prod android server project
+        # TODO: Find the correct server names for these
+        +database: "{{ 'oppia-android-server-prod' if target.name == 'prod' else 'oppia-android-server-test' }}"
+
+    # Core Modeling Layers (Writes outputs to your central analytics engines)
+    dim:
+      +schema: dim
+      +database: "{{ 'oppia-analytics-prod' if target.name == 'prod' else 'oppia-analytics-test' }}"
+    fct:
+      +schema: fct
+      +database: "{{ 'oppia-analytics-prod' if target.name == 'prod' else 'oppia-analytics-test' }}"
+    agg:
+      +schema: agg
+      +database: "{{ 'oppia-analytics-prod' if target.name == 'prod' else 'oppia-analytics-test' }}"
