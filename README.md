@@ -4,17 +4,41 @@ This repository houses the central dbt (Data Build Tool) transformation pipeline
 
 ---
 
-## 📂 Repository Topology
+## Repository Topology
 
-    ├── .github/workflows/      # Automated CI/CD execution runs (PR validation & Weekly deploys)
-    ├── macros/                  # Global reusable SQL compilation modules (e.g., surrogate keys)
-    ├── models/                  # Core transformation layers
-    │   ├── stg/                 # Staging: Source cleaning and 1:1 type casting
-    │   ├── dim/                 # Dimensions: Contextual master reference tables
-    │   ├── fct/                 # Facts: Immutable time-series action logs
-    │   └── agg/                 # Aggregations: High-performance dashboard rollups
-    ├── dbt_project.yml          # Core routing configurations and project scope
-    └── profiles.yml.example     # Blueprint for credential file configuration
+The project uses three dbt model layers. Folder names are part of the dbt
+configuration in `dbt_project.yml`, so new models should be added to the
+corresponding layer.
+
+  ├── models/
+  │   ├── staging/
+  │   │   ├── web/             # Raw web sources and web event cleaning
+  │   │   ├── android/         # Raw Android sources and Android event cleaning
+  │   │   └── cuj_reference/   # CUJ workbook inventory and step definitions
+  │   ├── intermediate/        # Reusable transformations shared by marts
+  │   │   └── cuj_health/      # CUJ mappings, readiness, progression, metrics
+  │   └── marts/               # Business-facing models by product domain
+  │       ├── users/
+  │       ├── curriculum/
+  │       ├── growth_outreach/
+  │       └── cuj_health/      # Semantic Layer CUJ-health outputs
+  ├── seeds/cuj_health/         # Governed CUJ mappings, thresholds, and step pairs
+  ├── tests/cuj_health/         # Custom CUJ-health assertions
+  ├── macros/                  # Reusable dbt macros across all domains
+  │   ├── ga4/                 # Reusable GA4 event-parameter extraction
+  │   ├── cuj_health/          # Shared CUJ-health calculations
+  │   └── generate_surrogate_key.sql
+  ├── utils/
+  │   └── udf/                 # Warehouse user-defined functions
+  ├── dbt_project.yml           # Model routing and project scope
+  └── profiles.yml.example      # Credential configuration blueprint
+
+### Model Naming
+
+Use a double underscore between the entity and the business subject, for
+example `stg_web_analytics__events` or `int_web_cuj__event_matches`. Keep
+source definitions in `src_<platform>.yml` files and keep model descriptions
+and tests beside the models they document.
 
 ---
 

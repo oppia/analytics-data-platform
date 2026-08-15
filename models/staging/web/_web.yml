@@ -1,10 +1,9 @@
 version: 2
 
 models:
-  - name: stg_web_events
+  - name: stg_web_analytics__events
     description: "Standardized staging layer capturing core web log interactions."
     columns:
       - name: user_id
         tests:
           - not_null
-

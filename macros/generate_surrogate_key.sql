@@ -16,4 +16,3 @@
 TO_HEX(MD5(CONCAT({{ field_expressions | join(', ') }})))
 
 {% endmacro %}
-

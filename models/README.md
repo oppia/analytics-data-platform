@@ -5,8 +5,16 @@ Welcome to the data modeling layer for the Oppia Product Analytics pipeline. Thi
 ## Pipeline Architecture & Multi-Project Routing
 Our analytics infrastructure spans multiple Google Cloud Projects (GCP) to isolate development from live production dashboards. dbt handles the routing across these environments automatically based on your execution command target.
 
-* **Test Environment (`oppia-analytics-test`)**: Used for local analyst development and automated Pull Request checks. Reads raw logs from the test web/Android servers and outputs to `test_stg`, `test_dim`, `test_fct`, and `test_agg`.
-* **Production Environment (`oppia-analytics-prod`)**: Houses live dashboards. Reads raw logs from production web/Android servers and outputs to `prod_stg`, `prod_dim`, `prod_fct`, and `prod_agg`.
+* **Test Environment (`oppia-analytics-test`)**: Used for local analyst development and automated Pull Request checks. Reads raw logs from the test web/Android servers and writes intermediate and mart outputs to the test project.
+* **Production Environment (`oppia-analytics-prod`)**: Houses live dashboards. Reads raw logs from production Web/Android servers and writes the same model layers to the production project.
+
+The configured model layers are:
+
+1. **Staging (`staging/`)**: Source-aligned cleaning, type casting, and identity standardization for Web, Android, and CUJ-reference inputs.
+2. **Intermediate (`intermediate/`)**: Reusable transformations such as unified users and CUJ-health event mapping, readiness, matching, and progression logic.
+3. **Marts (`marts/`)**: Business-facing dimensions, facts, and aggregations organized by `users/`, `curriculum/`, `growth_outreach/`, and `cuj_health/`.
+
+CUJ-health models use the governed inputs in `seeds/cuj_health/`, custom assertions in `tests/cuj_health/`, and reusable calculations in `macros/cuj_health/`.
 
 ---
 
@@ -23,7 +31,7 @@ When tasked with writing a new SQL query or editing an existing model, do not mo
     git pull origin develop
     git checkout -b feature/your-feature-name
     ```
-2. **Write Pure SQL according to the Platform Skeleton:** Create your model inside the appropriate directory (e.g., `/models/stg/web/`). Write your query utilizing proper CTE naming conventions, ensuring `SELECT *` is avoided in final projection blocks.
+2. **Write Pure SQL according to the Platform Skeleton:** Create your model inside the appropriate directory (e.g., `/models/staging/web/` or `/models/intermediate/cuj_health/web/`). Write your query utilizing proper CTE naming conventions, ensuring `SELECT *` is avoided in final projection blocks.
 
     Every dbt model script must follow this structure:
 ```sql
@@ -33,7 +41,7 @@ When tasked with writing a new SQL query or editing an existing model, do not mo
     -- Note: Detailed column descriptions and data quality assertions are managed inside the corresponding schema.yml file.
 
     WITH source_data AS (
-        SELECT * FROM {{ ref('stg_web_events') }}
+        SELECT * FROM {{ ref('stg_web_analytics__events') }}
     ),
 
     lesson_progress AS (
@@ -85,10 +93,9 @@ Once approved and merged into `develop`, the automation pipeline takes over.
 ## Data Modeling Tiers & Pipeline Execution Guarantees
 All scripts across these tiers must be **strictly idempotent**. Running a pipeline or individual script multiple times must produce the exact same table state without duplicating metrics, multiplying records, or generating orphaned rows.
 
-1. **Staging (`stg/`)**: Source-aligned data cleaning and standardized data-type casting mapping 1:1 with source nodes.
-2. **Dimensions (`dim/`)**: Descriptive master lookup models tracking slow-moving contextual profile properties (e.g., users, lessons).
-3. **Facts (`fct/`)**: Immutable chronological event streams capturing core atomic user actions.
-4. **Aggregations (`agg/`)**: High-performance, performance-optimized summary metric rollups designed directly for visualization layer connections.
+1. **Staging (`staging/`)**: Source-aligned data cleaning and standardized data-type casting mapping 1:1 with source nodes.
+2. **Intermediate (`intermediate/`)**: Shared transformations that prepare conformed inputs for multiple marts.
+3. **Marts (`marts/`)**: Business-facing dimensions, facts, and aggregations organized by product domain.
 
 ---
 
@@ -96,7 +103,7 @@ All scripts across these tiers must be **strictly idempotent**. Running a pipeli
 
 To optimize query performance and minimize Google Cloud BigQuery analysis costs, all high-volume tables (especially within the `fct/` and `agg/` layers) must utilize dbt configuration blocks for performance tuning:
 
-* **Partitioning:** Every transaction or event stream must be partitioned by a date or timestamp column (e.g., `event_at` or `created_at`). This isolates queries to specific time ranges instead of scanning the entire table history.
+* **Partitioning:** Every high-volume intermediate or mart event stream must be partitioned by a date or timestamp column (e.g., `event_at` or `created_at`). This isolates queries to specific time ranges instead of scanning the entire table history.
 * **Clustering:** Tables must be clustered by high-cardinality columns that are frequently used in `WHERE` filters or `JOIN` clauses (e.g., `platform`, `user_id`, `lesson_id`).
 
 ### How to Implement This in a Model File
@@ -114,6 +121,6 @@ Analysts must add a dbt configuration block to the very top of their SQL file li
 ) }}
 
 WITH raw_data AS (
-    SELECT * FROM {{ ref('stg_web_events') }}
+    SELECT * FROM {{ ref('stg_web_analytics__events') }}
 ),
 ...

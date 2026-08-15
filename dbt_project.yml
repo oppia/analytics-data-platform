@@ -19,8 +19,8 @@ models:
     +materialized: table
 
     # Staging Layer configuration
-    stg:
-      +schema: stg
+    staging:
+      +schema: staging
       web:
         # Dynamically selects the test web server vs the prod web server project
         +database: "{{ 'oppiaserver' if target.name == 'prod' else 'oppiatestserver' }}"
@@ -29,13 +29,12 @@ models:
         # TODO: Find the correct server names for these
         +database: "{{ 'oppia-android-server-prod' if target.name == 'prod' else 'oppia-android-server-test' }}"
 
-    # Core Modeling Layers (Writes outputs to your central analytics engines)
-    dim:
-      +schema: dim
+    # Intermediate Layer: reusable transformations shared by marts
+    intermediate:
+      +schema: intermediate
       +database: "{{ 'oppia-analytics-prod' if target.name == 'prod' else 'oppia-analytics-test' }}"
-    fct:
-      +schema: fct
-      +database: "{{ 'oppia-analytics-prod' if target.name == 'prod' else 'oppia-analytics-test' }}"
-    agg:
-      +schema: agg
+
+    # Business-facing marts organized by product domain
+    marts:
+      +schema: marts
       +database: "{{ 'oppia-analytics-prod' if target.name == 'prod' else 'oppia-analytics-test' }}"
