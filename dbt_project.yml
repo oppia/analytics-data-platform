@@ -19,15 +19,10 @@ models:
     +materialized: table
 
     # Staging Layer configuration
+    # Raw server databases are configured on the source() itself, not here.
     staging:
       +schema: staging
-      web:
-        # Dynamically selects the test web server vs the prod web server project
-        +database: "{{ 'oppiaserver' if target.name == 'prod' else 'oppiatestserver' }}"
-      android:
-        # Dynamically selects the test android server vs the prod android server project
-        # TODO: Find the correct server names for these
-        +database: "{{ 'oppia-android-server-prod' if target.name == 'prod' else 'oppia-android-server-test' }}"
+      +database: "{{ 'oppia-analytics-prod' if target.name == 'prod' else 'oppia-analytics-test' }}"
 
     # Intermediate Layer: reusable transformations shared by marts
     intermediate:
