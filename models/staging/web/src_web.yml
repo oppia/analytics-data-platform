@@ -4,7 +4,7 @@ sources:
   - name: raw_web_server
     # Dynamically switches servers based on your target (dev vs prod)
     database: "{{ 'oppiaserver' if target.name == 'prod' else 'oppiatestserver' }}"
-    schema: raw_logs
+    schema: "{{ 'analytics_261927573' if target.name == 'prod' else 'analytics_264617348' }}"
     tables:
       - name: web_events_log
         description: "Raw untransformed event streaming records from the web client application."
