@@ -4,6 +4,7 @@ models:
   - name: stg_web_analytics__events
     description: "Standardized staging layer capturing core web log interactions."
     columns:
-      - name: user_id
+      - name: user_pseudo_id
+        # user_id is only populated for logged-in users; user_pseudo_id is GA4's always-present device/client identifier
         tests:
           - not_null

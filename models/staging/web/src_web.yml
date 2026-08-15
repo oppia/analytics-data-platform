@@ -6,5 +6,5 @@ sources:
     database: "{{ 'oppiaserver' if target.name == 'prod' else 'oppiatestserver' }}"
     schema: "{{ 'analytics_261927573' if target.name == 'prod' else 'analytics_264617348' }}"
     tables:
-      - name: web_events_log
-        description: "Raw untransformed event streaming records from the web client application."
+      - name: events_*
+        description: "Date-sharded GA4/Firebase event export tables (events_YYYYMMDD); query via wildcard with _TABLE_SUFFIX."
