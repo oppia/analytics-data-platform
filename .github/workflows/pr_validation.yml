@@ -51,6 +51,9 @@ jobs:
                 location: US
           EOF
 
+      - name: Install dbt Packages (if any)
+        run: dbt deps --profiles-dir .
+
       - name: Build and Test Models
         # dbt build runs each model then tests it immediately, so tests never target an unbuilt table
         run: dbt build --profiles-dir .

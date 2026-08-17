@@ -23,8 +23,8 @@ final_events AS (
         traffic_source.source AS traffic_source,
         traffic_source.medium AS traffic_medium,
         -- GA4 stores custom event attributes as key/value pairs rather than fixed columns
-        (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_location') AS page_location,
-        (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id') AS ga_session_id
+        (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'page_location' LIMIT 1) AS page_location,
+        (SELECT value.int_value FROM UNNEST(event_params) WHERE key = 'ga_session_id' LIMIT 1) AS ga_session_id
     FROM source_data
 )
 

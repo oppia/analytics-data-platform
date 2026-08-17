@@ -4,6 +4,9 @@
     COMPATIBILITY: Google Cloud BigQuery (Standard SQL)
     USAGE: {{ generate_surrogate_key(['user_id', 'lesson_id']) }} AS assignment_sk
 -#}
+{%- if not field_list -%}
+    {{ exceptions.raise_compiler_error("generate_surrogate_key() requires a non-empty field_list; CONCAT() with no arguments is invalid in BigQuery.") }}
+{%- endif -%}
 {%- set field_expressions = [] -%}
 
 {%- for field in field_list -%}
