@@ -1,0 +1,14 @@
+# profiles.yml.example
+# COPY THIS FILE, RENAME TO profiles.yml, AND DO NOT COMMIT IT TO GIT.
+oppia_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: oppia-analytics-test
+      # Change this to your name (e.g., dev_johndoe)
+      dataset: "dev_yourname"
+      threads: 4
+      timeout_seconds: 300
+      location: US

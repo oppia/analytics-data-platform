@@ -1,0 +1,35 @@
+name: 'oppia_analytics'
+version: '1.0.0'
+config-version: 2
+profile: 'oppia_analytics'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# This section dynamically routes your tables based on the target (dev vs prod)
+models:
+  oppia_analytics:
+    +materialized: table
+
+    # Staging Layer configuration
+    # Raw server databases are configured on the source() itself, not here.
+    staging:
+      +schema: staging
+      +database: "{{ 'oppia-analytics-prod' if target.name == 'prod' else 'oppia-analytics-test' }}"
+
+    # Intermediate Layer: reusable transformations shared by marts
+    intermediate:
+      +schema: intermediate
+      +database: "{{ 'oppia-analytics-prod' if target.name == 'prod' else 'oppia-analytics-test' }}"
+
+    # Business-facing marts organized by product domain
+    marts:
+      +schema: marts
+      +database: "{{ 'oppia-analytics-prod' if target.name == 'prod' else 'oppia-analytics-test' }}"

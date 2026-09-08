@@ -1,0 +1,59 @@
+name: Pull Request Data Validation
+
+on:
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  validate_sql:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          pip install dbt-bigquery sqlfluff-templater-dbt
+
+      - name: Authenticate to GCP Natively
+        run: |
+          # Write the secret JSON token safely as a raw literal string
+          cat << 'EOF' > ${HOME}/gcp_key.json
+          ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+          EOF
+
+          # Activate the service account using the pre-installed gcloud CLI
+          gcloud auth activate-service-account --key-file=${HOME}/gcp_key.json
+
+          # Set the application default credentials environment variable for dbt
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${HOME}/gcp_key.json" >> $GITHUB_ENV
+
+      # Generate a local connection profile using service-account credentials
+      - name: Create dynamic profiles.yml for dbt
+        run: |
+          cat << EOF > profiles.yml
+          oppia_analytics:
+            target: dev
+            outputs:
+              dev:
+                type: bigquery
+                method: service-account
+                keyfile: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
+                project: oppia-analytics-test
+                dataset: dev_github_actions
+                threads: 4
+                timeout_seconds: 300
+                location: US
+          EOF
+
+      - name: Install dbt Packages (if any)
+        run: dbt deps --profiles-dir .
+
+      - name: Build and Test Models
+        # dbt build runs each model then tests it immediately, so tests never target an unbuilt table
+        run: dbt build --profiles-dir .
