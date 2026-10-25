@@ -1,0 +1,32 @@
+name: "Post-Launch & Delta Check Review"
+description: Request a post-launch analysis following a release.
+title: "[Review]: "
+labels: ["intake:review", "type:delta-check", "needs-triage"]
+body:
+  - type: dropdown
+    id: trigger_reason
+    attributes:
+      label: Review Trigger
+      options:
+        - "Post-Launch Funnel Review (~2 Weeks Post-Launch)"
+        - "CUJ Delta Check (Release affected an existing journey)"
+        - "Impact / Campaign Post-Mortem Check"
+        - "Surge in User Friction / Support Complaints"
+    validations:
+      required: true
+
+  - type: input
+    id: subject_name
+    attributes:
+      label: Name of Feature, Campaign, or CUJ
+      placeholder: e.g., Q1 Marketing Referral Push OR Checkout Flow
+    validations:
+      required: true
+
+  - type: textarea
+    id: focus_areas
+    attributes:
+      label: Specific Hypotheses or Areas of Concern
+      placeholder: e.g., Did conversion drop among mobile web users after the update?
+    validations:
+      required: false
