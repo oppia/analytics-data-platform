@@ -1,4 +1,4 @@
-name: "New CUJ for Analytics"
+name: "CUJ Registration for Analytics Rating"
 description: Propose a CUJ to track, baseline, and add to the catalog.
 title: "[CUJ]: "
 labels: ["intake:prod-ops", "type:cuj-catalog", "needs-triage"]
