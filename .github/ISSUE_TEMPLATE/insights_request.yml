@@ -1,0 +1,72 @@
+name: "Request for Data Insights"
+description: For Marketing, Impact, or Exec requests (attributions, deep dives, impact studies, ad-hoc reports).
+title: "[Insights]: "
+labels: ["intake:cross-functional", "type:analysis", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form if you are in a team that needs data analysis, campaign attribution, or custom reporting.
+
+  - type: dropdown
+    id: requesting_dept
+    attributes:
+      label: Requesting Department
+      options:
+        - Comms & Engagement
+        - Impact Measurement
+        - Partnerships
+        - Grants
+        - Executive
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: other_dept
+    attributes:
+      label: Specify Department (if "Other" selected above)
+      placeholder: e.g., Math Lessons, Web Dev, etc.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: deliverable_type
+    attributes:
+      label: Primary Deliverable Requested
+      options:
+        - New Looker Studio Dashboard / Report
+        - Usage Metrics Evaluation
+        - Cohort / Behavioural Analysis
+        - Campaign Attribution / Funnel Performance
+        - Dataset / CSV Export / Data Extraction
+    validations:
+      required: true
+
+  - type: textarea
+    id: business_questions
+    attributes:
+      label: Core Business / Impact Questions
+      description: What specific questions do you need answered?
+      placeholder: |
+        1. Which marketing channel produced the highest 30-day active users this quarter?
+        2. What percentage of underserved user cohorts accessed our core tool?
+    validations:
+      required: true
+
+  - type: textarea
+    id: decision_impact
+    attributes:
+      label: How Will This Data Be Used?
+      description: State the decision that is dependent on this insight.
+      placeholder: e.g., Will determine Q3 resource allocation / Required for Annual Report.
+    validations:
+      required: true
+
+  - type: input
+    id: target_date
+    attributes:
+      label: Target Due Date
+      placeholder: YYYY-MM-DD
+    validations:
+      required: true
