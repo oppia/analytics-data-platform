@@ -1,4 +1,4 @@
-name: "Feature Telemetry & Pre-Launch Tracking"
+name: "New Feature: Initial Telemetry Request"
 description: Request tracking specs, schema definitions, and validation before a product release.
 title: "[Tracking]: "
 labels: ["intake:prod-ops", "type:telemetry", "needs-triage"]
