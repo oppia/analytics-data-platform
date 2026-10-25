@@ -1,0 +1,54 @@
+name: "Feature Telemetry & Pre-Launch Tracking"
+description: Request tracking specs, schema definitions, and validation before a product release.
+title: "[Tracking]: "
+labels: ["intake:prod-ops", "type:telemetry", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Workflow:** Product Ops submits during planning/design. Product Analytics defines schema; Engineering implements; Analytics validates prior to release.
+
+  - type: input
+    id: feature_name
+    attributes:
+      label: Feature Name & Ticket Link
+      placeholder: e.g., Auto-Renewal Checkout (Jira #PROD-1234)
+    validations:
+      required: true
+
+  - type: input
+    id: target_launch_date
+    attributes:
+      label: Target Launch Date
+      placeholder: YYYY-MM-DD
+    validations:
+      required: true
+
+  - type: textarea
+    id: feature_context
+    attributes:
+      label: Business Objective & Context
+      placeholder: What user problem or business goal does this release address?
+    validations:
+      required: true
+
+  - type: textarea
+    id: key_user_actions
+    attributes:
+      label: Key Actions & Success Metrics to Track
+      placeholder: |
+        - User clicks "Opt-In"
+        - System triggers success event
+        - Success metric: % of active users opting in within 14 days
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        ### 📋 Readiness Checklist (Internal Use)
+        - [ ] **Step 3 (Analytics):** Business questions & Event Schema defined
+        - [ ] **Step 4 (Engineering):** Event instrumentation implemented
+        - [ ] **Step 5 (Analytics):** Event firing validated in test server
+        - [ ] **Step 6 (Product Ops):** Analytics Readiness signed off for launch
