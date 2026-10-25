@@ -1,4 +1,4 @@
-name: "Technical Issue & Data Bug Request"
+name: "Technical Bug Report"
 description: Report broken tracking events, pipeline failures, data discrepancies, or dashboard errors.
 title: "[Data Bug]: "
 labels: ["intake:technical", "type:data-bug", "needs-triage"]
