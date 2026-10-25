@@ -1,0 +1,42 @@
+name: "New CUJ for Analytics"
+description: Propose a CUJ to track, baseline, and add to the catalog.
+title: "[CUJ]: "
+labels: ["intake:prod-ops", "type:cuj-catalog", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this for end-to-end user paths critical to key outcomes.
+
+  - type: input
+    id: cuj_sheet_link
+    attributes:
+      label: CUJ Sheet Link
+      placeholder: Enter the link to the CUJ sheet
+    validations:
+      required: true
+
+  - type: input
+    id: cuj_name
+    attributes:
+      label: CUJ Name
+      placeholder: e.g., LO.1. Find a topic to learn 
+    validations:
+      required: true
+
+  - type: input
+    id: target_user
+    attributes:
+      label: Target User Segment / Persona
+      placeholder: e.g., New Learners
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        ### 📊 CUJ Lifecycle Checklist (Internal Use)
+        - [ ] **Analytics:** Telemetry audit completed
+        - [ ] **Analytics/ProdOps:** Funnel steps & health thresholds finalized
+        - [ ] **Analytics:** Baseline performance established
