@@ -1,0 +1,72 @@
+name: "Technical Issue & Data Bug Request"
+description: Report broken tracking events, pipeline failures, data discrepancies, or dashboard errors.
+title: "[Data Bug]: "
+labels: ["intake:technical", "type:data-bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form to report technical issues, missing/broken telemetry, ETL failures, or data accuracy discrepancies.
+
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: Issue Category
+      options:
+        - Broken / Missing Telemetry Event
+        - Data Discrepancy / Accuracy Issue
+        - Dashboard Error / Broken Query
+        - Data Pipeline / ETL Failure
+        - Tracking Schema Violation
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity Level
+      options:
+        - "P1 - Critical (Blocking key business decision or core metric reporting)"
+        - "P2 - High (Data corrupted or missing for a major feature/CUJ)"
+        - "P3 - Medium (Minor discrepancy or single broken dashboard visual)"
+        - "P4 - Low (Cosmetic fix, schema cleanup, or non-urgent tweak)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: bug_description
+    attributes:
+      label: Problem Description & Expected vs. Actual Behavior
+      description: What is going wrong? Explain what you expected to see vs. what is actually happening.
+      placeholder: |
+        Expected: `lesson_completed` event fires upon 200 OK API response.
+        Actual: Event stopped firing on Android v0.17.0 following yesterday's release.
+    validations:
+      required: true
+
+  - type: input
+    id: affected_surface
+    attributes:
+      label: Affected Surface / Environment / Pipeline
+      description: Name of the event, table, dashboard URL, or platform (Android, Web).
+      placeholder: e.g., GA `button_clicked` event / BigQuery table `prod.events`
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps_to_reproduce
+    attributes:
+      label: Steps to Reproduce or Identify
+      description: Provide steps to reproduce the tracking bug, or link to a sample record/query demonstrating the error.
+      placeholder: |
+        1. Open mobile app v0.17.0 on Android.
+        2. Complete a lesson and click "Go to Next Lesson".
+        3. Check Firebase events live stream - event does not appear.
+    validations:
+      required: false
+
+  - type: textarea
+    id: supporting_links
+    attributes:
+      label: Links & Screenshots
+      description: Attach screenshots
