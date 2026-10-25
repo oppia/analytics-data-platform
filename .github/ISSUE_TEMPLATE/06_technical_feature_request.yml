@@ -1,4 +1,4 @@
-name: "Engineering Feature Request"
+name: "Technical Feature Request"
 description: For data pipeline enhancements or internal analytics tooling.
 title: "[Dev Request]: "
 labels: ["intake:engineering", "type:dev-feature", "needs-triage"]
@@ -48,7 +48,7 @@ body:
     validations:
       required: false
 
-- type: markdown
+  - type: markdown
     attributes:
       value: |
         ---
