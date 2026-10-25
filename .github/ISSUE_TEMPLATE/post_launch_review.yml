@@ -1,4 +1,4 @@
-name: "Post-Launch & Delta Check Review"
+name: "Post-Launch Review"
 description: Request a post-launch analysis following a release.
 title: "[Review]: "
 labels: ["intake:review", "type:delta-check", "needs-triage"]
