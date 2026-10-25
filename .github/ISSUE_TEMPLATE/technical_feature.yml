@@ -1,0 +1,59 @@
+name: "Engineering Feature Request"
+description: For data pipeline enhancements or internal analytics tooling.
+title: "[Dev Request]: "
+labels: ["intake:engineering", "type:dev-feature", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form if you are proposing infrastructure improvements, new data transformations, tracking library additions, or internal developer experience tooling for analytics.
+
+  - type: dropdown
+    id: request_category
+    attributes:
+      label: Request Category
+      options:
+        - Data Pipeline / dbt Model Transformation
+        - Schema / Event Standard Update
+        - Developer Tooling & Testing Utilities
+        - CI/CD & Automated Event Validation
+    validations:
+      required: true
+
+  - type: textarea
+    id: feature_summary
+    attributes:
+      label: Feature Summary & Problem Statement
+      description: What engineering capability or infrastructure change are you proposing? What friction does this solve?
+      placeholder: Describe the requested change and why current infrastructure falls short...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_solution
+    attributes:
+      label: Proposed Technical Implementation
+      description: Detail the proposed design, spec, or API/interface changes if you already have an architecture in mind.
+      placeholder: |
+        - Expose a new middleware in `analytics-android` to attach device state automatically.
+        - Add a new staging dbt model `stg_donate_latency` to aggregate donation channel latencies.
+    validations:
+      required: false
+
+  - type: textarea
+    id: technical_links
+    attributes:
+      label: Related PRs, RFCs, or Repositories
+      placeholder: Repository link, design doc, open PR URL...
+    validations:
+      required: false
+
+- type: markdown
+    attributes:
+      value: |
+        ---
+        ### ⚙️ Analytics Engineering Review (Internal Use)
+        - [ ] Technical architecture reviewed
+        - [ ] Impact on downstream data models & dashboards assessed
+        - [ ] Implementation ownership & target sprint assigned
+        - [ ] Documentation updated in Data Catalog / Telemetry Registry
