@@ -23,6 +23,15 @@ body:
     validations:
       required: true
 
+  - type: input
+    id: evaluation_window
+    attributes:
+      label: Evaluation Window / Date Range
+      description: Specify the launch date and the observation period.
+      placeholder: e.g., Launched Oct 15; analyze Oct 15 – Oct 29 (14 days)
+    validations:
+      required: true
+
   - type: textarea
     id: focus_areas
     attributes:
