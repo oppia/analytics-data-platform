@@ -43,7 +43,7 @@ body:
     validations:
       required: true
 
-- type: input
+  - type: input
     id: analysis_timeframe
     attributes:
       label: Analysis Timeframe / Date Range
