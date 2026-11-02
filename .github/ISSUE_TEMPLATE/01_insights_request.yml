@@ -43,6 +43,15 @@ body:
     validations:
       required: true
 
+- type: input
+    id: analysis_timeframe
+    attributes:
+      label: Analysis Timeframe / Date Range
+      description: Specify the time period for the data to be analyzed.
+      placeholder: e.g., Last 30 days, Q1 2026, or Jan 1 - Mar 15, 2026
+    validations:
+      required: true
+
   - type: textarea
     id: business_questions
     attributes:
