@@ -35,7 +35,7 @@ body:
     attributes:
       label: Primary Deliverable Requested
       options:
-        - New Looker Studio Dashboard / Report
+        - New Data Studio Dashboard / Report
         - Usage Metrics Evaluation
         - Cohort / Behavioural Analysis
         - Campaign Attribution / Funnel Performance
