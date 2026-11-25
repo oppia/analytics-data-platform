@@ -10,6 +10,7 @@ The project uses three dbt model layers. Folder names are part of the dbt
 configuration in `dbt_project.yml`, so new models should be added to the
 corresponding layer.
 
+```
   ├── models/
   │   ├── staging/
   │   │   ├── web/             # Raw web sources and web event cleaning
@@ -32,6 +33,7 @@ corresponding layer.
   │   └── udf/                 # Warehouse user-defined functions
   ├── dbt_project.yml           # Model routing and project scope
   └── profiles.yml.example      # Credential configuration blueprint
+```
 
 ### Model Naming
 
