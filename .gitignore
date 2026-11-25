@@ -14,3 +14,7 @@ profiles.yml
 # Service account keys (Safety net to prevent credential leaks)
 *.json
 *.pem
+
+# Python virtual environments
+.venv/
+venv/

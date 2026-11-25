@@ -69,18 +69,25 @@ When tasked with writing a new SQL query or editing an existing model, do not mo
 4. **Add Schema Definitions:** Document your model and columns inside the corresponding `schema.yml` file. Define data quality tests (such as `not_null` or `unique`) on critical keys.
 
 ### Phase 2: Pull Request & Automated Code Validation (CI)
-Once your local runs compile successfully and your data quality looks accurate, it is time to move your code toward production.
+Once your local runs compile and pass checks, open a PR targeting `develop` from a feature branch in `oppia/analytics-data-platform`. See [CONTRIBUTING.md](../CONTRIBUTING.md) for the full PR submission and review checklist.
 
-1. **Commit and Push:** Push your feature branch to GitHub:
+1. **Run Local Checks:** Verify linting and BigQuery tests before pushing:
+```bash
+    yamllint .
+    sqlfluff lint models/
+    dbt build --target dev
+    ```
+2. **Commit and Push:** Push your feature branch directly to `origin` (`oppia/analytics-data-platform`):
 ```bash
     git add .
     git commit -m "feat: added web lesson completed aggregation"
     git push origin feature/your-feature-name
     ```
-2. **Open a Pull Request (PR):** Open a PR targeting the `develop` branch.
-3. **Automated Quality Gates:** Opening the PR automatically kicks off a GitHub Actions CI pipeline. This pipeline logs into `oppia-analytics-test`, checks your SQL syntax, verifies model relationships, and builds the lineage tree.
-    * *If the pipeline fails, the PR will block merging until you fix the compilation or syntax errors.*
-4. **Peer Review:** At least one team member must review and approve your PR before it can be merged into `develop`.
+3. **Open a Pull Request (PR):** Open a PR targeting `develop`.
+4. **Automated Quality Gates:** Opening the PR triggers GitHub Actions CI:
+    * **Static Checks (`yamllint`, `sqlfluff`, `dbt parse`)** run automatically on all PRs (including forks).
+    * **BigQuery Build & Test (`dbt build`)** runs automatically against `oppia-analytics-test` for branches pushed to `oppia/analytics-data-platform`.
+5. **Peer Review:** At least one approved reviewer must approve your PR before it can be merged into `develop`.
 
 ### Phase 3: Deployment to Production
 Once approved and merged into `develop`, the automation pipeline takes over.

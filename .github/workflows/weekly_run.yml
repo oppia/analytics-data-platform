@@ -9,25 +9,31 @@ name: Weekly Production Analytics Run
 #
 # Environment Target: Production (oppia-analytics-prod)
 # Key Operations:
-#   1. Authenticates to GCP using an automated service account.
-#   2. Dynamically isolates database credentials to prevent local Git leaks.
+#   1. Authenticates to GCP via Workload Identity Federation (short-lived OIDC).
+#   2. Dynamically generates a BigQuery profile using ADC (method: oauth).
 #   3. Runs data quality assertions and transforms fresh production analytics logs.
 # ==============================================================================
 
 on:
   schedule:
-    # Runs at 00:00 UTC every Sunday (Adjust cron expression for your preferred timezone)
+    # Runs at 00:00 UTC every Sunday
     - cron: '0 0 * * 0'
   workflow_dispatch:
     # Allows the analytics team to trigger a one-off run manually from the GitHub UI
+
+concurrency:
+  group: weekly-production-run
+  cancel-in-progress: false
 
 jobs:
   dbt_run:
     name: Execute dbt Production Pipeline
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
-      # Clone the repository codebase onto the temporary GitHub virtual runner
       - name: Checkout Code
         uses: actions/checkout@v4
 
@@ -35,39 +41,32 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          # Use caching to decrease run times for subsequent runs
           cache: 'pip'
+          cache-dependency-path: requirements.txt
 
       - name: Install dbt and BigQuery Dependencies
         run: |
-          pip install --upgrade pip
-          pip install dbt-bigquery
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      # Exchange GitHub secret tokens for active, authenticated Google Cloud sessions
-      - name: Authenticate to GCP Natively
-        run: |
-          # Write the secret JSON token safely as a raw literal string
-          cat << 'EOF' > ${HOME}/gcp_key.json
-          ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
-          EOF
+      # Authenticate via GCP Workload Identity Federation (scoped in GCP IAM to refs/heads/develop).
+      # Sets GOOGLE_APPLICATION_CREDENTIALS, which dbt's 'method: oauth' picks up via ADC.
+      - name: Authenticate to Google Cloud (WIF)
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: oppia-analytics-prod
+          workload_identity_provider: ${{ secrets.GCP_PROD_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_PROD_SERVICE_ACCOUNT }}
 
-          # Activate the service account using the pre-installed gcloud CLI
-          gcloud auth activate-service-account --key-file=${HOME}/gcp_key.json
-
-          # Set the application default credentials environment variable for dbt
-          echo "GOOGLE_APPLICATION_CREDENTIALS=${HOME}/gcp_key.json" >> $GITHUB_ENV
-
-      # Generate a production connection profile using service-account credentials
       - name: Create dynamic profiles.yml for dbt
         run: |
-          cat << EOF > profiles.yml
+          cat << 'EOF' > profiles.yml
           oppia_analytics:
             target: prod
             outputs:
               prod:
                 type: bigquery
-                method: service-account
-                keyfile: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
+                method: oauth
                 project: oppia-analytics-prod
                 dataset: analytics_production
                 threads: 4
@@ -75,15 +74,12 @@ jobs:
                 location: US
           EOF
 
-      # Validate infrastructure paths and check that BigQuery is responding
       - name: Verify dbt Connection
-        run: dbt debug --profiles-dir .
+        run: dbt debug --target prod --profiles-dir .
 
-      # Pull down any third-party open-source dbt packages listed in packages.yml
       - name: Install dbt Packages (if any)
         run: dbt deps --profiles-dir .
 
-      # Perform a comprehensive build (Compile, Model materialization, and Data testing)
       - name: Execute and Test Pipeline
         # 'dbt build' compiles, runs, and tests every staging, dim, fct, and agg table sequentially.
         # If an upstream table fails a test, downstream tables are skipped to preserve data integrity.
