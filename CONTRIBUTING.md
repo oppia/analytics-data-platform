@@ -17,16 +17,38 @@ git checkout -b feature/<short-description>
 Install dev dependencies once (`pip install -r requirements-dev.txt`), then verify your changes:
 
 ```bash
-# Offline linting and dbt project validation (no BigQuery credentials needed)
-yamllint .
-sqlfluff lint models/
+# Offline linting, Python unit tests (100% coverage), dbt parsing, and dbt coverage checks
+yamllint --strict .
+ruff check .
+ruff format --check .
+coverage run -m unittest discover -s scripts -v && coverage report
+sqlfluff lint models/ tests/
 dbt parse
+python3 scripts/check_dbt_coverage.py
 
 # Full build and data tests in your personal oppia-analytics-test sandbox
 dbt build --target dev
 ```
 
 For SQL conventions, folder placement, and partitioning/clustering rules, see [models/README.md](models/README.md).
+
+#### Testing requirements (enforced in CI)
+- **All models:** Must have a `description` and at least one `data_tests` entry in `schema.yml`.
+- **`intermediate/` and `marts/` models:** Must also include at least one native dbt `unit_tests:` entry in `schema.yml` to verify transformation logic against mocked rows (use `format: sql` if inputs contain BigQuery `STRUCT`/`ARRAY` columns; trivial passthrough models can opt out with `config: {meta: {unit_test_exempt: true}}`). Example:
+  ```yaml
+  unit_tests:
+    - name: test_fct_lesson_completions_dedup
+      model: fct_lesson_completions
+      given:
+        - input: ref('stg_web_analytics__events')
+          rows:
+            - {user_pseudo_id: 'u1', event_name: 'lesson_complete', event_date: '20261101'}
+      expect:
+        rows:
+          - {user_pseudo_id: 'u1', completion_count: 1}
+  ```
+- **Custom macros (`macros/`):** Must be exercised by at least one model or test in `tests/`.
+- **Sources (`src_*.yml`):** Must include a `description`, `config.loaded_at_field`, and `config.freshness` (or `config: {meta: {freshness_exempt: true}}` for static lookup tables).
 
 ### 3. Open the PR targeting `develop`
 - Keep PRs focused on a single logical change and link the relevant GitHub issue.
@@ -45,7 +67,7 @@ Reviewers should verify the following before approving and merging into `develop
   - Models use `{{ ref() }}` / `{{ source() }}` (no hardcoded project or dataset names).
   - Final `SELECT` lists columns explicitly (no `SELECT *` in final projections) and queries are idempotent.
   - High-volume intermediate and mart tables define `partition_by` and `cluster_by` configs.
-- **Documentation & tests:** New or changed models have clear descriptions and appropriate assertions (`not_null`, `unique`, etc.) in their colocated `schema.yml`.
+- **Documentation & tests:** New or changed models have clear descriptions, `data_tests` (`not_null`, `unique`, etc.) on critical keys, and meaningful `unit_tests` for `intermediate/` and `marts/` logic (verify any `unit_test_exempt` or `freshness_exempt` opt-outs are genuinely justified).
 - **Safety & scope:** No credentials or local config files committed, and any changes to `.github/workflows/` or `dbt_project.yml` are intentional and carefully reviewed.
 
 ---

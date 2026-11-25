@@ -15,6 +15,11 @@ profiles.yml
 *.json
 *.pem
 
-# Python virtual environments
+# Python virtual environments, bytecode, and caches/coverage
 .venv/
 venv/
+__pycache__/
+*.py[cod]
+.coverage
+.coverage.*
+.ruff_cache/

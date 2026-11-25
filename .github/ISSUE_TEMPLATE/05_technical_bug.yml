@@ -69,4 +69,6 @@ body:
     id: supporting_links
     attributes:
       label: Links & Screenshots
-      description: Attach screenshots
+      description: Attach screenshots, query links, or dashboard URLs if available.
+    validations:
+      required: false
