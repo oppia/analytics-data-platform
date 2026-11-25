@@ -6,5 +6,18 @@ models:
     columns:
       - name: user_pseudo_id
         # user_id is only populated for logged-in users; user_pseudo_id is GA4's always-present device/client identifier
-        tests:
+        description: "GA4 client/device identifier."
+        data_tests:
+          - not_null
+      - name: event_name
+        description: "GA4 event name."
+        data_tests:
+          - not_null
+      - name: event_date
+        description: "UTC event date (DATE) parsed from GA4 event_date (YYYYMMDD)."
+        data_tests:
+          - not_null
+      - name: event_timestamp
+        description: "UTC event timestamp converted from GA4 event_timestamp micros."
+        data_tests:
           - not_null

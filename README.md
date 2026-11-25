@@ -48,14 +48,19 @@ and tests beside the models they document.
 
 Before compiling data structures locally, developers must establish active credentials to access the development sandboxes inside `oppia-analytics-test`.
 
-### 1. Initialize Authentication and Local Dependencies
-Ensure you have Python 3.11+ installed, then initialize your analytics environment:
+### 1. Initialize Local Environment and Dependencies
+Ensure you have Python 3.11+ installed, create a virtual environment, and install the project dependencies:
 
-    # Install dbt-bigquery and local linters (sqlfluff, yamllint)
-    pip install -r requirements-dev.txt
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
 
-    # Pull down open-source external packages (if any)
-    dbt deps
+# Install dbt-bigquery and local dev tools (ruff, coverage, sqlfluff, yamllint)
+pip install -r requirements-dev.txt
+
+# Pull down open-source external packages (if any)
+dbt deps
+```
 
 ### 2. Configure Your Connection Profile
 Local credentials are kept strictly out of git version control.
@@ -83,9 +88,13 @@ Run a diagnostic framework check to ensure dbt can establish a secure handshake 
 * Build and test models inside your personal schema sandbox:
   dbt build --target dev
 
-* Run offline linting and project parsing (same checks run in PR CI):
-  yamllint .
-  sqlfluff lint models/
+* Run offline linting, tests, and coverage checks (same checks run in PR CI):
+  yamllint --strict .
+  ruff check .
+  ruff format --check .
+  coverage run -m unittest discover -s scripts -v && coverage report
+  sqlfluff lint models/ tests/
   dbt parse
+  python3 scripts/check_dbt_coverage.py
 
 For modeling conventions and architecture details, see [models/README.md](models/README.md). For making and reviewing Pull Requests, see [CONTRIBUTING.md](CONTRIBUTING.md).

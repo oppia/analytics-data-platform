@@ -8,3 +8,14 @@ sources:
     tables:
       - name: events_*
         description: "Date-sharded GA4/Firebase event export tables (events_YYYYMMDD); query via wildcard with _TABLE_SUFFIX."
+        config:
+          # Wildcard tables require a query-based loaded_at_field and _TABLE_SUFFIX filter to avoid full-history scans
+          loaded_at_field: "TIMESTAMP_MICROS(event_timestamp)"
+          freshness:
+            warn_after:
+              count: 36
+              period: hour
+            error_after:
+              count: 48
+              period: hour
+            filter: "_TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 3 DAY))"

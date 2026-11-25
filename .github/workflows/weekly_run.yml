@@ -20,6 +20,11 @@ on:
     - cron: '0 0 * * 0'
   workflow_dispatch:
     # Allows the analytics team to trigger a one-off run manually from the GitHub UI
+    inputs:
+      full_refresh:
+        description: "Rebuild incremental tables from scratch (--full-refresh)"
+        type: boolean
+        default: false
 
 concurrency:
   group: weekly-production-run
@@ -80,7 +85,16 @@ jobs:
       - name: Install dbt Packages (if any)
         run: dbt deps --profiles-dir .
 
+      # Fail loudly if production GA4 exports have stalled rather than overwriting tables with 0 rows
+      - name: Check Source Freshness
+        run: dbt source freshness --target prod --profiles-dir .
+
       - name: Execute and Test Pipeline
         # 'dbt build' compiles, runs, and tests every staging, dim, fct, and agg table sequentially.
         # If an upstream table fails a test, downstream tables are skipped to preserve data integrity.
-        run: dbt build --target prod --profiles-dir .
+        run: |
+          if [ "${{ inputs.full_refresh }}" = "true" ]; then
+            dbt build --full-refresh --target prod --profiles-dir .
+          else
+            dbt build --target prod --profiles-dir .
+          fi

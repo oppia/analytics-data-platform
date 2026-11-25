@@ -69,14 +69,9 @@ When tasked with writing a new SQL query or editing an existing model, do not mo
 4. **Add Schema Definitions:** Document your model and columns inside the corresponding `schema.yml` file. Define data quality tests (such as `not_null` or `unique`) on critical keys.
 
 ### Phase 2: Pull Request & Automated Code Validation (CI)
-Once your local runs compile and pass checks, open a PR targeting `develop` from a feature branch in `oppia/analytics-data-platform`. See [CONTRIBUTING.md](../CONTRIBUTING.md) for the full PR submission and review checklist.
+Once your local runs compile and pass checks, open a PR targeting `develop` from a feature branch in `oppia/analytics-data-platform`. See [CONTRIBUTING.md](../CONTRIBUTING.md) for the complete local check commands and PR submission/review checklist.
 
-1. **Run Local Checks:** Verify linting and BigQuery tests before pushing:
-```bash
-    yamllint .
-    sqlfluff lint models/
-    dbt build --target dev
-    ```
+1. **Run Local Checks:** Run the offline lint/coverage suite and `dbt build --target dev` listed in [CONTRIBUTING.md](../CONTRIBUTING.md#2-run-checks-locally-before-pushing).
 2. **Commit and Push:** Push your feature branch directly to `origin` (`oppia/analytics-data-platform`):
 ```bash
     git add .
@@ -85,8 +80,8 @@ Once your local runs compile and pass checks, open a PR targeting `develop` from
     ```
 3. **Open a Pull Request (PR):** Open a PR targeting `develop`.
 4. **Automated Quality Gates:** Opening the PR triggers GitHub Actions CI:
-    * **Static Checks (`yamllint`, `sqlfluff`, `dbt parse`)** run automatically on all PRs (including forks).
-    * **BigQuery Build & Test (`dbt build`)** runs automatically against `oppia-analytics-test` for branches pushed to `oppia/analytics-data-platform`.
+    * **Static Checks** (`yamllint`, `ruff`, Python unit tests with 100% coverage, `sqlfluff`, offline `dbt parse`, and `scripts/check_dbt_coverage.py`) run automatically on all PRs.
+    * **BigQuery Build & Test** (`dbt build`) runs automatically against `oppia-analytics-test` for branches pushed to `oppia/analytics-data-platform` (and fails with instructions on fork PRs).
 5. **Peer Review:** At least one approved reviewer must approve your PR before it can be merged into `develop`.
 
 ### Phase 3: Deployment to Production
