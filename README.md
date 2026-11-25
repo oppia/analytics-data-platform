@@ -49,12 +49,12 @@ and tests beside the models they document.
 Before compiling data structures locally, developers must establish active credentials to access the development sandboxes inside `oppia-analytics-test`.
 
 ### 1. Initialize Authentication and Local Dependencies
-Ensure you have Python 3.10+ installed globally, then initialize your analytics space:
+Ensure you have Python 3.11+ installed, then initialize your analytics environment:
 
-    # Install core database compilation tools
-    pip install dbt-bigquery
+    # Install dbt-bigquery and local linters (sqlfluff, yamllint)
+    pip install -r requirements-dev.txt
 
-    # Pull down open-source external packages
+    # Pull down open-source external packages (if any)
     dbt deps
 
 ### 2. Configure Your Connection Profile
@@ -80,10 +80,12 @@ Run a diagnostic framework check to ensure dbt can establish a secure handshake 
 * Compile the structural SQL lineage tree:
   dbt compile
 
-* Build data tables inside your personal schema sandbox:
-  dbt run --target dev
+* Build and test models inside your personal schema sandbox:
+  dbt build --target dev
 
-* Execute assertion tests against data quality constraints:
-  dbt test --target dev
+* Run offline linting and project parsing (same checks run in PR CI):
+  yamllint .
+  sqlfluff lint models/
+  dbt parse
 
-For full details regarding the analytics architecture, query writing structures, or production merge criteria, please read the documentation inside the [Models Directory README](models/README.md).
+For modeling conventions and architecture details, see [models/README.md](models/README.md). For making and reviewing Pull Requests, see [CONTRIBUTING.md](CONTRIBUTING.md).

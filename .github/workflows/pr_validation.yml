@@ -2,10 +2,14 @@ name: Pull Request Data Validation
 
 on:
   pull_request:
-    branches: [ develop ]
+    branches: [develop]
+
+permissions:
+  contents: read
 
 jobs:
-  validate_sql:
+  static_checks:
+    name: Static Checks (Lint & dbt Parse)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -15,41 +19,116 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
 
       - name: Install Dependencies
         run: |
-          pip install dbt-bigquery sqlfluff-templater-dbt
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
 
-      - name: Authenticate to GCP Natively
+      - name: Lint YAML Files
+        run: yamllint --strict .
+
+      - name: Lint SQL Models
         run: |
-          # Write the secret JSON token safely as a raw literal string
-          cat << 'EOF' > ${HOME}/gcp_key.json
-          ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
-          EOF
+          sqlfluff lint models/
+          if [ -d tests ]; then
+            sqlfluff lint tests/
+          fi
 
-          # Activate the service account using the pre-installed gcloud CLI
-          gcloud auth activate-service-account --key-file=${HOME}/gcp_key.json
-
-          # Set the application default credentials environment variable for dbt
-          echo "GOOGLE_APPLICATION_CREDENTIALS=${HOME}/gcp_key.json" >> $GITHUB_ENV
-
-      # Generate a local connection profile using service-account credentials
-      - name: Create dynamic profiles.yml for dbt
+      - name: Parse dbt Project Offline
         run: |
-          cat << EOF > profiles.yml
+          cat << 'EOF' > profiles.yml
           oppia_analytics:
             target: dev
             outputs:
               dev:
                 type: bigquery
-                method: service-account
-                keyfile: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
+                method: oauth
                 project: oppia-analytics-test
                 dataset: dev_github_actions
                 threads: 4
                 timeout_seconds: 300
                 location: US
           EOF
+
+          dbt deps --profiles-dir .
+          dbt parse --profiles-dir .
+
+  bigquery_build:
+    name: BigQuery Build & Test
+    needs: static_checks
+    # Dependabot PRs cannot mint GitHub OIDC tokens, so skip BigQuery build for Dependabot
+    # (Static Checks still verifies installs, linting, and dbt parse). Fork PRs still enter
+    # this job and fail cleanly at the first step so unvalidated fork PRs cannot be merged.
+    if: github.actor != 'dependabot[bot]' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      # Serialize PR runs against the shared dev_github_actions dataset without canceling queued PRs
+      group: pr-bigquery-test
+      cancel-in-progress: false
+    steps:
+      - name: Check PR Source Branch
+        if: github.event.pull_request.head.repo.full_name != github.repository
+        run: |
+          cat << 'EOF' >> "$GITHUB_STEP_SUMMARY"
+          ### BigQuery Build Blocked (Fork PR)
+
+          GitHub withholds cloud credentials from pull requests opened from forks, so **BigQuery Build & Test** cannot run here.
+
+          Please push your feature branch directly to `oppia/analytics-data-platform` and reopen the pull request from that branch (see `CONTRIBUTING.md`).
+          EOF
+          echo "::error::Pull requests from forks cannot run BigQuery CI. Push your branch directly to oppia/analytics-data-platform and reopen the PR from there (see CONTRIBUTING.md)."
+          exit 1
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: requirements.txt
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Authenticate via GCP Workload Identity Federation (no static JSON keys).
+      # Sets GOOGLE_APPLICATION_CREDENTIALS, which dbt's 'method: oauth' picks up via ADC.
+      - name: Authenticate to Google Cloud (WIF)
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: oppia-analytics-test
+          workload_identity_provider: ${{ secrets.GCP_TEST_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_TEST_SERVICE_ACCOUNT }}
+
+      - name: Create dynamic profiles.yml for dbt
+        run: |
+          cat << 'EOF' > profiles.yml
+          oppia_analytics:
+            target: dev
+            outputs:
+              dev:
+                type: bigquery
+                method: oauth
+                project: oppia-analytics-test
+                dataset: dev_github_actions
+                threads: 4
+                timeout_seconds: 300
+                location: US
+          EOF
+
+      - name: Verify dbt Connection
+        run: dbt debug --profiles-dir .
 
       - name: Install dbt Packages (if any)
         run: dbt deps --profiles-dir .

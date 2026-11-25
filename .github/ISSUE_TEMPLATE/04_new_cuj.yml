@@ -20,7 +20,7 @@ body:
     id: cuj_name
     attributes:
       label: CUJ Name
-      placeholder: e.g., LO.1. Find a topic to learn 
+      placeholder: e.g., LO.1. Find a topic to learn
     validations:
       required: true
 

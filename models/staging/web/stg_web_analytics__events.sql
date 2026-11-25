@@ -6,7 +6,8 @@
 WITH source_data AS (
     -- events_* wildcard scans all daily shards; _TABLE_SUFFIX exposes each shard's date suffix
     SELECT * FROM {{ source('raw_web_server', 'events_*') }}
-    WHERE _TABLE_SUFFIX BETWEEN FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY))
+    WHERE
+        _TABLE_SUFFIX BETWEEN FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY))
         AND FORMAT_DATE('%Y%m%d', CURRENT_DATE())
 ),
 
